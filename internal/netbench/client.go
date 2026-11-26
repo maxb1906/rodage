@@ -212,8 +212,10 @@ func (c *client) tcp(ctx context.Context, dir string) (TCPResult, error) {
 	defer cancel()
 	start := time.Now()
 	stop := make(chan struct{})
+	tickDone := make(chan struct{})
 	var curve []float64
 	go func() {
+		defer close(tickDone)
 		tk := time.NewTicker(time.Second)
 		defer tk.Stop()
 		var last uint64
@@ -254,6 +256,7 @@ func (c *client) tcp(ctx context.Context, dir string) (TCPResult, error) {
 	}
 	wg.Wait()
 	close(stop)
+	<-tickDone
 	el := time.Since(start)
 	res.Curve = curve
 	if dir == "up" {
@@ -305,6 +308,7 @@ func (c *client) udp(ctx context.Context, dir string, rate float64) (UDPResult, 
 	}
 	// Sens descendant : on annonce notre adresse puis on reçoit.
 	st := newUDPStats()
+	var got atomic.Bool
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
@@ -318,6 +322,7 @@ func (c *client) udp(ctx context.Context, dir string, rate float64) (UDPResult, 
 			if n >= udpHeader {
 				_, seq, ts := readUDPHeader(buf)
 				st.add(seq, ts, n)
+				got.Store(true)
 			}
 		}
 	}()
@@ -332,7 +337,7 @@ func (c *client) udp(ctx context.Context, dir string, rate float64) (UDPResult, 
 	for i := 0; i < 20; i++ {
 		uc.Write(hdr)
 		time.Sleep(100 * time.Millisecond)
-		if st.Received > 0 {
+		if got.Load() {
 			break
 		}
 	}

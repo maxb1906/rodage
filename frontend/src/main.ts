@@ -113,7 +113,7 @@ function body(): string {
 }
 
 function logo(): string {
-  return `<svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#1d2433"/>
+  return `<svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#34405a"/>
   <path d="M7 19 a9 9 0 0 1 18 0" fill="none" stroke="#5c7cfa" stroke-width="3" stroke-linecap="round"/>
   <path d="M16 19 L22 12" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="19" r="2.2" fill="#fff"/></svg>`;
 }
@@ -213,7 +213,7 @@ function reportsView(): string {
   <h1>${esc(t('nav.reports'))}</h1>
   <div class="actions left"><button data-act="folder">${esc(t('reports.folder'))}</button><button data-act="import">${esc(t('reports.import'))}</button>
   <button class="primary" data-act="compare" ${S.selected.size === 2 ? '' : 'disabled'}>${esc(t('reports.compare'))}</button><span class="note">${esc(t('reports.select2'))}</span></div>
-  ${S.reports.length ? `<table class="list"><tr><th></th><th>${esc(t('date'))}</th><th>Host</th><th>${esc(t('mode'))}</th><th>${esc(t('duration'))}</th><th>${esc(t('verdict'))}</th><th></th></tr>${rows}</table>` : `<p class="note">${esc(t('reports.empty'))}</p>`}`;
+  ${S.reports.length ? `<table class="list"><tr><th></th><th>${esc(t('date'))}</th><th>${esc(t('nav.machine'))}</th><th>${esc(t('mode'))}</th><th>${esc(t('duration'))}</th><th>${esc(t('verdict'))}</th><th></th></tr>${rows}</table>` : `<p class="note">${esc(t('reports.empty'))}</p>`}`;
 }
 
 function compareView(): string {
@@ -246,7 +246,7 @@ function machineView(): string {
   <tr><td>${esc(t('temp'))}</td><td>${m.temp_c >= 0 ? m.temp_c.toFixed(0) + ' °C' : esc(t('na'))}</td></tr>
   <tr><td>${esc(t('freq'))}</td><td>${m.freq_mhz >= 0 ? m.freq_mhz.toFixed(0) + ' MHz' : esc(t('na'))}</td></tr></table>
   <section><h2>${esc(t('machine.sensors'))}</h2><p>${esc(m.sensor_text)}</p><ul class="limits">${m.sensor_details.map(d => `<li>${esc(d)}</li>`).join('')}</ul></section>
-  <section><h2>${esc(t('machine.disks'))}</h2><table class="list"><tr><th></th><th>Model</th><th>Serial</th><th class="n">Size</th><th></th></tr>
+  <section><h2>${esc(t('machine.disks'))}</h2><table class="list"><tr><th></th><th>${esc(t('model'))}</th><th>${esc(t('serial'))}</th><th class="n">${esc(t('size'))}</th><th></th></tr>
   ${m.disks.map(d => `<tr><td>${esc(d.name)}</td><td>${esc(d.model)}</td><td>${esc(d.serial)}</td><td class="n">${esc(d.size_text)}</td>
   <td>${esc(d.bus)}${d.system ? ' · ' + esc(t('system')) : ''}${d.partitions ? ` · ${d.partitions} ${esc(t('partitions'))}` : ''}${d.raw_eligible ? ' · ' + esc(t('raw.ok')) : ''}</td></tr>`).join('')}</table></section>`;
 }

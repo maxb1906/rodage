@@ -111,8 +111,9 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 tr:last-child td { border-bottom: 0; }
 table.kv td:first-child { color: var(--mute); width: 32%; }
 td.btns { white-space: nowrap; text-align: right; }
+table.list td { white-space: nowrap; }
 td.btns button { padding: 4px 9px; font-size: 12.5px; margin-left: 4px; }
-.pill { padding: 2px 9px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.pill { white-space: nowrap; padding: 2px 9px; border-radius: 12px; font-size: 12px; font-weight: 600; }
 .pill.pass { background: #d3f9d8; color: var(--ok); } .pill.warn { background: #fff4e6; color: var(--warn); }
 .pill.fail { background: #ffe3e3; color: var(--fail); } .pill.incomplete { background: #e7f5ff; color: var(--info); }
 td.up { color: var(--ok); font-weight: 600; } td.down { color: var(--fail); font-weight: 600; }

@@ -168,6 +168,7 @@ func PowerStatus() (onAC bool, batteryPct int, hasBattery bool, ok bool) {
 	supplies, _ := filepath.Glob("/sys/class/power_supply/*")
 	batteryPct = -1
 	sawMains := false
+	discharging := false
 	for _, s := range supplies {
 		switch readTrim(s + "/type") {
 		case "Mains":
@@ -180,6 +181,7 @@ func PowerStatus() (onAC bool, batteryPct int, hasBattery bool, ok bool) {
 			if v, err := strconv.Atoi(readTrim(s + "/capacity")); err == nil {
 				batteryPct = v
 			}
+			discharging = discharging || readTrim(s+"/status") == "Discharging"
 		}
 	}
 	if !sawMains && !hasBattery {
@@ -187,7 +189,7 @@ func PowerStatus() (onAC bool, batteryPct int, hasBattery bool, ok bool) {
 	}
 	if !sawMains {
 		// Pas d'information secteur : on se fie à l'état de charge.
-		onAC = readTrim(filepath.Join(supplies[0], "status")) != "Discharging"
+		onAC = !discharging
 	}
 	return onAC, batteryPct, hasBattery, true
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -54,7 +55,8 @@ type run struct {
 	mon     *safety.Monitor
 	ctx     context.Context
 	phases  []string
-	idx     int
+	idx     atomic.Int32
+	emitMu  sync.Mutex
 }
 
 func newID() string {
@@ -72,12 +74,16 @@ func (r *run) fraction(local float64) float64 {
 	if n == 0 {
 		return 0
 	}
-	return min((float64(r.idx)+min(max(local, 0), 1))/n, 0.999)
+	return min((float64(r.idx.Load())+min(max(local, 0), 1))/n, 0.999)
 }
 
+// send transmet un événement ; les appels sont sérialisés pour que le
+// consommateur (CLI, GUI) n'ait pas à être sûr en concurrence.
 func (r *run) send(e Event) {
 	if r.emit != nil {
+		r.emitMu.Lock()
 		r.emit(e)
+		r.emitMu.Unlock()
 	}
 }
 
@@ -151,7 +157,7 @@ func Run(parent context.Context, plan Plan, emit func(Event)) (*report.Report, e
 		if ctx.Err() != nil {
 			break
 		}
-		r.idx = i
+		r.idx.Store(int32(i))
 		safety.WriteMarker(safety.Marker{Started: r.start, Mode: plan.Mode, Phase: ph})
 		r.send(Event{Kind: "phase", Phase: ph, Fraction: r.fraction(0)})
 		t0 := time.Now()
