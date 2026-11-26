@@ -165,7 +165,7 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 			}
 			rate := cfg.UDPRateMbps
 			if rate <= 0 {
-				rate = min(max(rates[dir]/2, 10), 2000)
+				rate = min(max(rates[dir]/2, 10), 500)
 			}
 			u, err := c.udp(ctx, dir, rate)
 			if err != nil {

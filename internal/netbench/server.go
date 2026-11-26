@@ -72,6 +72,8 @@ func (s *Server) ListenAndServe(ctx context.Context, addr string) error {
 		ln.Close()
 		return fmt.Errorf("UDP %s : %w", ua, err)
 	}
+	uc.SetReadBuffer(8 << 20)
+	uc.SetWriteBuffer(8 << 20)
 	s.udp = uc
 	s.logf("serveur Rodage à l'écoute sur %s (TCP et UDP)", ln.Addr())
 	go func() {
