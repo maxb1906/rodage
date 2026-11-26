@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="{{.L}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} — {{.R.System.Hostname}}</title>
+<style>
+:root{--fg:#1d2433;--mute:#5c667a;--line:#dfe3ea;--bg:#f6f7f9;--card:#fff;--ok:#2f9e44;--warn:#e67700;--fail:#c92a2a;--info:#1c7ed6}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;color:var(--fg);background:var(--bg)}
+main{max-width:900px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:17px;margin:30px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-size:15px;margin:18px 0 6px}
+.sub{color:var(--mute);font-size:13px}
+.verdict{display:flex;gap:16px;align-items:center;margin:20px 0;padding:18px 20px;border-radius:10px;background:var(--card);border:1px solid var(--line);border-left:8px solid var(--mute)}
+.verdict.pass{border-left-color:var(--ok)}.verdict.warn{border-left-color:var(--warn)}.verdict.fail{border-left-color:var(--fail)}.verdict.incomplete{border-left-color:var(--info)}
+.verdict b{font-size:22px;display:block}
+.pass b{color:var(--ok)}.warn b{color:var(--warn)}.fail b{color:var(--fail)}.incomplete b{color:var(--info)}
+ul.f{list-style:none;padding:0;margin:0}
+ul.f li{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px 9px 36px;margin:6px 0;position:relative}
+ul.f li:before{position:absolute;left:12px;top:9px;font-weight:700}
+li.ok:before{content:"✓";color:var(--ok)}li.warn:before{content:"!";color:var(--warn)}li.fail:before{content:"✗";color:var(--fail)}li.info:before{content:"i";color:var(--info)}
+li .c{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-right:6px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:14px}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#eef1f5;font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+table.kv td:first-child{width:34%;color:var(--mute)}
+.chart{background:var(--card);border:1px solid var(--line);border-radius:8px;margin:8px 0}
+.chart .ct{font-size:13px;font-weight:600;fill:var(--fg)}
+.chart .cl{font-size:10px;fill:var(--mute)}
+.chart .grid{stroke:#e9ecf1;stroke-width:1}
+.chart .b0{fill:#f1f3f6}.chart .b1{fill:#e7ebf0}
+.chart .bl{font-size:9px;fill:var(--mute)}
+.note{color:var(--mute);font-size:13px}
+.bad{color:var(--fail);font-weight:600}
+footer{margin-top:40px;color:var(--mute);font-size:12px}
+@media print{body{background:#fff}main{padding:0}.chart,table,ul.f li,.verdict{break-inside:avoid}h2{break-after:avoid}}
+</style>
+</head>
+<body><main>
+<h1>{{.Title}}</h1>
+<div class="sub">{{.R.System.Hostname}} · {{.Generated}} · ID {{.R.ID}}</div>
+
+<div class="verdict {{.Verdict}}"><div><b>{{t .L "r.verdict"}} : {{.VerdictTxt}}</b>{{t .L (printf "verdict.%s.long" .Verdict)}}</div></div>
+
+<h2>{{t .L "r.findings"}}</h2>
+<ul class="f">{{range .Findings}}<li class="{{.Sev}}"><span class="c">{{.Comp}}</span>{{.Text}}</li>{{end}}</ul>
+
+<h2>{{t .L "r.config"}}</h2>
+<table class="kv">{{range .Config}}<tr><td>{{.K}}</td><td>{{.V}}</td></tr>{{end}}</table>
+
+<h2>{{t .L "r.tests"}}</h2>
+{{with .R.CPU}}
+<h3>{{t $.L "comp.cpu"}}</h3>
+{{with .Stress}}
+<table><tr><th>{{t $.L "r.cores"}}</th><th class="n">{{t $.L "r.iterations"}}</th><th class="n">{{t $.L "r.errors"}}</th></tr>
+{{range .Cores}}<tr><td>#{{.CPU}}{{if not .Pinned}} *{{end}}</td><td class="n">{{.Iterations}}</td><td class="n{{if .Errors}} bad{{end}}">{{.Errors}}</td></tr>{{end}}
+</table>
+<p class="note">{{.Kernel}} · {{range $i, $w := .Workloads}}{{if $i}}, {{end}}{{$w}}{{end}} · {{dur .Duration}}</p>
+{{end}}
+{{with .Bench}}
+<table><tr><th>{{t $.L "r.test"}}</th><th class="n">{{t $.L "r.single"}}</th><th class="n">{{t $.L "r.multi"}}</th><th>{{t $.L "r.unit"}}</th></tr>
+{{range .Scores}}<tr><td>{{.Name}}</td><td class="n">{{f2 .Single}}</td><td class="n">{{if .Multi}}{{f2 .Multi}}{{else}}—{{end}}</td><td>{{.Unit}}</td></tr>{{end}}
+</table>
+{{end}}
+{{end}}
+{{with .R.RAM}}
+<h3>{{t $.L "comp.ram"}}</h3>
+<table class="kv">
+<tr><td>{{t $.L "r.tested"}}</td><td>{{bytes .Bytes}}</td></tr>
+<tr><td>{{t $.L "r.locked"}}</td><td>{{if .Locked}}{{t $.L "r.yes"}}{{else}}{{t $.L "r.no"}} — {{.LockNote}}{{end}}</td></tr>
+<tr><td>{{t $.L "r.passes"}}</td><td>{{.Passes}} ({{range $i, $w := .Tests}}{{if $i}}, {{end}}{{$w}}{{end}})</td></tr>
+<tr><td>{{t $.L "r.bandwidth"}}</td><td>{{gbs .BandwidthGBs}}</td></tr>
+<tr><td>{{t $.L "r.errors"}}</td><td{{if .TotalErrors}} class="bad"{{end}}>{{.TotalErrors}}</td></tr>
+<tr><td>ECC</td><td>{{if .ECC.Available}}{{.ECC.Source}} : {{.ECC.Corrected}} / {{.ECC.Uncorrected}}{{else}}—{{end}}</td></tr>
+</table>
+{{if .Errors}}<table><tr><th>Test</th><th class="n">Offset</th><th class="n">{{t $.L "r.expected"}}</th><th class="n">{{t $.L "r.actual"}}</th></tr>{{range .Errors}}<tr><td>{{.Test}}</td><td class="n">{{printf "%#x" .Offset}}</td><td class="n">{{printf "%#016x" .Expected}}</td><td class="n">{{printf "%#016x" .Actual}}</td></tr>{{end}}</table>{{end}}
+{{end}}
+{{range .R.Disks}}
+<h3>{{t $.L "comp.disk"}} — {{if .Device}}{{.Device.Model}} {{.Device.Serial}} ({{.Device.Bus}}){{else}}{{.Path}}{{end}}</h3>
+<table class="kv">
+<tr><td>{{t $.L "r.mode"}}</td><td>{{.Mode}} · {{.Path}} · {{bytes .FileSize}}</td></tr>
+<tr><td>{{t $.L "r.seqread"}}</td><td>{{f0 .SeqReadMBs}} Mo/s</td></tr>
+<tr><td>{{t $.L "r.seqwrite"}}</td><td>{{f0 .SeqWriteMBs}} Mo/s</td></tr>
+<tr><td>{{t $.L "r.written"}}</td><td>{{bytes .Written}} / {{bytes .WriteCap}}</td></tr>
+<tr><td>{{t $.L "r.errors"}}</td><td{{if or .VerifyErrors .IOErrors}} class="bad"{{end}}>{{.VerifyErrors}} / {{.IOErrors}}</td></tr>
+<tr><td>{{t $.L "r.health"}}</td><td>{{if .HealthBefore.Available}}{{.HealthBefore.Protocol}} · {{tempOrNA .HealthBefore.TempC}} → {{tempOrNA .HealthAfter.TempC}} · media {{i64 .HealthBefore.MediaErrors}} → {{i64 .HealthAfter.MediaErrors}} · realloc {{i64 .HealthBefore.Reallocated}} → {{i64 .HealthAfter.Reallocated}} · {{i64 .HealthAfter.PowerOnHours}} h{{if ge .HealthAfter.PercentUsed 0}} · {{.HealthAfter.PercentUsed}} %{{end}}{{else}}— {{.HealthBefore.Note}}{{end}}</td></tr>
+</table>
+<table><tr><th>{{t $.L "r.test"}}</th><th class="n">IOPS</th><th class="n">Mo/s</th><th class="n">moy. µs</th><th class="n">p99 µs</th><th class="n">max µs</th></tr>
+{{range .Random}}<tr><td>{{.Name}}</td><td class="n">{{f0 .IOPS}}</td><td class="n">{{f1 .MBs}}</td><td class="n">{{f0 .AvgUs}}</td><td class="n">{{f0 .P99Us}}</td><td class="n">{{f0 .MaxUs}}</td></tr>{{end}}
+</table>
+{{end}}
+{{with .R.Net}}
+<h3>{{t $.L "comp.net"}} — {{.Server}}{{if .ServerHost}} ({{.ServerHost}}){{end}}</h3>
+<table><tr><th>{{t $.L "r.test"}}</th><th class="n">Mbit/s</th><th class="n">{{t $.L "r.result"}}</th></tr>
+{{range .TCP}}<tr><td>TCP {{.Dir}} ×{{.Streams}}</td><td class="n">{{f0 .Mbps}}</td><td class="n">{{bytes .Bytes}}</td></tr>{{end}}
+{{range .UDP}}<tr><td>UDP {{.Dir}} ({{f0 .TargetMbps}} Mbit/s)</td><td class="n">{{f0 .Mbps}}</td><td class="n">{{f2 .LossPct}} % · {{f2 .JitterMs}} ms</td></tr>{{end}}
+</table>
+<p class="note">RTT {{f1 .RTTms}} ms · {{.Link.Interface}} {{f0 .Link.SpeedStartMbps}} Mbit/s · err {{.Link.RxErrors}}/{{.Link.TxErrors}}</p>
+{{end}}
+{{if .R.Errors}}<ul class="f">{{range .R.Errors}}<li class="warn">{{.}}</li>{{end}}</ul>{{end}}
+
+{{if .Charts}}<h2>{{t .L "r.charts"}}</h2>{{range .Charts}}{{.}}{{end}}{{end}}
+
+<h2>{{t .L "r.sensors"}}</h2>
+<table class="kv">
+<tr><td>{{t .L "r.confidence"}}</td><td>{{t .L "r.level" .R.Sensors.Level}} — {{t .L (conf .R.Sensors.Level)}}</td></tr>
+<tr><td>{{t .L "r.tjmax"}}</td><td>{{f0 .R.Sensors.TjMax}} °C</td></tr>
+{{range .R.Sensors.Details}}<tr><td></td><td>{{.}}</td></tr>{{end}}
+</table>
+
+{{if .R.Safety}}<h2>{{t .L "r.safetyev"}}</h2>
+<table>{{range .R.Safety}}<tr><td>{{time .Time}}</td><td>{{.Kind}}</td><td>{{.Detail}}</td></tr>{{end}}</table>{{end}}
+
+<h2>{{t .L "r.limits"}}</h2>
+<ul class="f">{{range .Limits}}<li class="info">{{.}}</li>{{end}}</ul>
+
+<footer>Rodage {{.R.Version}} — GPL-3.0 — aucune donnée n'est envoyée sur Internet / no telemetry.</footer>
+</main></body></html>
