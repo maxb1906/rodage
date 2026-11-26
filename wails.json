@@ -1,13 +1,19 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "rodage",
+  "name": "Rodage",
   "outputfilename": "rodage",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "maxb1906",
-    "email": "maxime.boosten@gmail.com"
+    "name": "maxb1906"
+  },
+  "info": {
+    "companyName": "Rodage",
+    "productName": "Rodage",
+    "productVersion": "1.0.0",
+    "copyright": "GPL-3.0",
+    "comments": "Testeur de charge et de stabilité matériel / Hardware load and stability tester"
   }
 }

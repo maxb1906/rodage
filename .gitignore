@@ -3,3 +3,4 @@ node_modules
 frontend/dist
 /rodage-cli
 /rodage-cli.exe
+frontend/package.json.md5
