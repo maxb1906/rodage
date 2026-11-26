@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"runtime"
 	"strings"
 	"sync"
@@ -57,6 +58,7 @@ type run struct {
 	phases  []string
 	idx     atomic.Int32
 	emitMu  sync.Mutex
+	frac    atomic.Uint64 // avancement déjà annoncé (bits float64)
 }
 
 func newID() string {
@@ -65,16 +67,25 @@ func newID() string {
 	return time.Now().Format("20060102-150405") + "-" + hex.EncodeToString(b[:3])
 }
 
+// fraction renvoie l'avancement global ; il ne recule jamais, quel que soit
+// l'événement qui le demande (relevé, journal ou progression d'une phase).
 func (r *run) fraction(local float64) float64 {
+	var f float64
 	if r.planned > 0 {
-		f := float64(time.Since(r.start)) / float64(r.planned)
-		return min(f, 0.999)
+		f = float64(time.Since(r.start)) / float64(r.planned)
+	} else if n := float64(len(r.phases)); n > 0 {
+		f = (float64(r.idx.Load()) + min(max(local, 0), 1)) / n
 	}
-	n := float64(len(r.phases))
-	if n == 0 {
-		return 0
+	f = min(f, 0.999)
+	for {
+		old := r.frac.Load()
+		if f <= math.Float64frombits(old) {
+			return math.Float64frombits(old)
+		}
+		if r.frac.CompareAndSwap(old, math.Float64bits(f)) {
+			return f
+		}
 	}
-	return min((float64(r.idx.Load())+min(max(local, 0), 1))/n, 0.999)
 }
 
 // send transmet un événement ; les appels sont sérialisés pour que le
@@ -114,6 +125,15 @@ func Run(parent context.Context, plan Plan, emit func(Event)) (*report.Report, e
 	if plan.Mode == ModeStress {
 		r.planned = plan.Total()
 	}
+	// Liste fixée avant tout fil concurrent (échantillonneur, sûreté).
+	for _, c := range []struct {
+		name string
+		on   bool
+	}{{"cpu", plan.CPU}, {"ram", plan.RAM}, {"disk", plan.Disk}, {"net", plan.Net}} {
+		if c.on {
+			r.phases = append(r.phases, c.name)
+		}
+	}
 	rep := &report.Report{Tool: "rodage", Version: Version, ID: newID(), Created: time.Now(), Lang: string(lang),
 		Mode: plan.Mode, Profile: plan.Profile, Planned: r.planned}
 	r.rep = rep
@@ -142,14 +162,6 @@ func Run(parent context.Context, plan Plan, emit func(Event)) (*report.Report, e
 	rep.ThermalStop = r.mon.Limit()
 
 	budget := plan.Budget()
-	for _, c := range []struct {
-		name string
-		on   bool
-	}{{"cpu", plan.CPU}, {"ram", plan.RAM}, {"disk", plan.Disk}, {"net", plan.Net}} {
-		if c.on {
-			r.phases = append(r.phases, c.name)
-		}
-	}
 	r.send(Event{Kind: "start", Planned: r.planned, Message: strings.Join(r.phases, ",")})
 	safety.WriteMarker(safety.Marker{Started: r.start, Mode: plan.Mode})
 
@@ -365,15 +377,21 @@ func (r *run) runDisk(d time.Duration) error {
 	b.touch()
 	var lastDone uint64
 	var lastPhase string
+	step := -1 // sous-mesure courante : écriture, lecture, 4 × aléatoire, relecture
+	const steps = 7
 	cfg.Progress = func(p disk.Progress) {
 		if p.Done != lastDone || p.Phase != lastPhase {
 			b.touch()
 		}
-		lastDone, lastPhase = p.Done, p.Phase
-		local := 0.0
-		if p.Total > 0 {
-			local = float64(p.Done) / float64(p.Total)
+		if p.Phase != lastPhase {
+			step++
 		}
+		lastDone, lastPhase = p.Done, p.Phase
+		within := 0.0
+		if p.Total > 0 {
+			within = min(float64(p.Done)/float64(p.Total), 1)
+		}
+		local := (float64(min(step, steps-1)) + within) / steps
 		r.progress("disk", local, p.Phase, p.MBs, "Mo/s", p.Errors)
 	}
 	r.mon.Watch("disk", b.last)

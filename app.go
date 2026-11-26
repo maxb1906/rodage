@@ -360,8 +360,7 @@ func (a *App) OpenReportHTML(path string) error {
 	if err != nil {
 		return err
 	}
-	runtime.BrowserOpenURL(a.ctx, "file://"+filepath.ToSlash(out))
-	return nil
+	return openPath(out)
 }
 
 // ExportPDF demande un emplacement et écrit le PDF du rapport.
@@ -428,9 +427,9 @@ func (a *App) DeleteReport(path string) error {
 }
 
 // OpenReportsFolder ouvre le dossier des rapports.
-func (a *App) OpenReportsFolder() {
+func (a *App) OpenReportsFolder() error {
 	os.MkdirAll(reportsDir(), 0o755)
-	runtime.BrowserOpenURL(a.ctx, "file://"+filepath.ToSlash(reportsDir()))
+	return openPath(reportsDir())
 }
 
 // Compare compare deux rapports et prépare un HTML.
@@ -461,9 +460,12 @@ func (a *App) Compare(pathA, pathB string) (DiffView, error) {
 	return v, nil
 }
 
-// OpenFile ouvre un fichier local dans le navigateur.
-func (a *App) OpenFile(path string) {
-	runtime.BrowserOpenURL(a.ctx, "file://"+filepath.ToSlash(path))
+// OpenFile ouvre un fichier local avec l'application par défaut.
+func (a *App) OpenFile(path string) error {
+	if _, err := os.Stat(path); err != nil {
+		return err
+	}
+	return openPath(path)
 }
 
 // ChooseDirectory ouvre un sélecteur de dossier.

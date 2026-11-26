@@ -91,3 +91,42 @@ func TestUserStop(t *testing.T) {
 		t.Fatalf("verdict %s", rep.Verdict)
 	}
 }
+
+func TestFractionMonotonic(t *testing.T) {
+	r := &run{phases: []string{"cpu", "disk"}}
+	r.idx.Store(1)
+	if f := r.fraction(0.6); f != 0.8 {
+		t.Fatalf("%v", f)
+	}
+	// Un relevé de sonde (local = 0) ne doit pas faire reculer la barre.
+	if f := r.fraction(0); f != 0.8 {
+		t.Fatalf("recul : %v", f)
+	}
+}
+
+// Bench disque réel : l'avancement émis ne doit jamais reculer.
+func TestBenchDiskProgressMonotonic(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	p := DefaultPlan(ModeBench, ProfileBench)
+	p.CPU, p.RAM = false, false
+	p.DiskDir = t.TempDir()
+	p.DiskFileSize = 64 << 20
+	last := 0.0
+	n := 0
+	_, err := Run(context.Background(), p, func(e Event) {
+		if e.Fraction < last {
+			t.Errorf("recul %s/%s : %.3f < %.3f", e.Kind, e.Phase, e.Fraction, last)
+		}
+		last = e.Fraction
+		n++
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if last != 1 || n < 10 {
+		t.Fatalf("fin à %.3f après %d événements", last, n)
+	}
+}

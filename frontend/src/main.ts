@@ -285,7 +285,8 @@ function updateLive() {
 
 function onEvent(e: EngineEvent) {
   const r = S.run;
-  r.fraction = e.fraction ?? r.fraction;
+  // L'avancement ne recule jamais à l'écran.
+  if (e.fraction != null) r.fraction = Math.max(r.fraction, e.fraction);
   const now = (Date.now() - r.start) / 1000;
   switch (e.kind) {
     case 'start':
