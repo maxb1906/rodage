@@ -20,18 +20,25 @@ func joinInts(v []int) string {
 	return strings.Join(s, ", ")
 }
 
-// HumanBytes formate une taille (base 1024).
-func HumanBytes(b uint64) string {
+// HumanBytes formate une taille (base 1024) avec les unités françaises.
+func HumanBytes(b uint64) string { return HumanBytesL(i18n.FR, b) }
+
+// HumanBytesL formate une taille dans la langue demandée (Gio / GiB).
+func HumanBytesL(l i18n.Lang, b uint64) string {
 	const u = 1024
+	byteU, suffix := "o", "io"
+	if l == i18n.EN {
+		byteU, suffix = "B", "iB"
+	}
 	if b < u {
-		return fmt.Sprintf("%d o", b)
+		return fmt.Sprintf("%d %s", b, byteU)
 	}
 	div, exp := uint64(u), 0
 	for n := b / u; n >= u; n /= u {
 		div *= u
 		exp++
 	}
-	return fmt.Sprintf("%.1f %cio", float64(b)/float64(div), "KMGTPE"[exp])
+	return fmt.Sprintf("%.1f %c%s", float64(b)/float64(div), "KMGTPE"[exp], suffix)
 }
 
 // HumanDuration formate une durée lisible.
@@ -137,6 +144,8 @@ func (r *Report) Evaluate() {
 			}
 			if errs > 0 {
 				add(SevFail, "cpu", "f.cpu.errors", errs, "?")
+			} else {
+				add(SevOK, "cpu", "f.cpu.bench", len(b.Scores), b.Kernel)
 			}
 		}
 		if tr := c.Throttle; tr != nil {
@@ -169,7 +178,7 @@ func (r *Report) Evaluate() {
 			}
 			add(SevFail, "ram", "f.ram.errors", m.TotalErrors, strings.Join(ts, ", "))
 		} else if m.Passes > 0 {
-			add(SevOK, "ram", "f.ram.ok", HumanBytes(m.Bytes), m.Passes)
+			add(SevOK, "ram", "f.ram.ok", HumanBytesL(l, m.Bytes), m.Passes)
 		} else {
 			add(SevWarn, "ram", "f.ram.nopass")
 		}
@@ -208,7 +217,7 @@ func (r *Report) Evaluate() {
 			add(SevInfo, "disk", "f.disk.nohealth", name, d.HealthBefore.Note)
 		}
 		if !bad && d.ReadBytes > 0 {
-			add(SevOK, "disk", "f.disk.ok", name, HumanBytes(d.ReadBytes), d.SeqReadMBs, d.SeqWriteMBs)
+			add(SevOK, "disk", "f.disk.ok", name, HumanBytesL(l, d.ReadBytes), d.SeqReadMBs, d.SeqWriteMBs)
 		}
 		if d.SLC.Detected {
 			add(SevInfo, "disk", "f.disk.slc", name, d.SLC.BeforeMBs, d.SLC.AfterMBs, d.SLC.AfterGB)

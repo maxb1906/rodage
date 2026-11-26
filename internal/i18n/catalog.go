@@ -31,6 +31,7 @@ var catalog = map[string][2]string{
 
 	// Constats
 	"f.cpu.ok":               {"%d cœurs logiques testés pendant %s, aucune erreur de calcul (%s).", "%d logical cores tested for %s, no computation errors (%s)."},
+	"f.cpu.bench":            {"%d mesures, tous les calculs vérifiés sont exacts (%s).", "%d measurements, all verified computations are correct (%s)."},
 	"f.cpu.errors":           {"%d erreur(s) de calcul silencieuse(s) sur le(s) cœur(s) %s : processeur instable (overclocking, tension, refroidissement ou défaut matériel).", "%d silent computation error(s) on core(s) %s: unstable processor (overclocking, voltage, cooling or hardware defect)."},
 	"f.cpu.stalled":          {"Le(s) cœur(s) %s ont cessé de progresser (gel).", "Core(s) %s stopped making progress (hang)."},
 	"f.cpu.nopin":            {"Épinglage par cœur indisponible : un cœur défaillant ne peut pas être isolé précisément.", "Per-core pinning unavailable: a faulty core cannot be isolated precisely."},
@@ -154,7 +155,49 @@ var catalog = map[string][2]string{
 	"r.safetyev":   {"Événements de sûreté", "Safety events"},
 	"r.client":     {"côté client", "client side"},
 	"r.server":     {"côté serveur", "server side"},
-	"r.expected":    {"Attendu", "Expected"},
-	"r.actual":      {"Lu", "Read"},
-	"r.notested":   {"non testé", "not tested"},
+	"r.expected":   {"Attendu", "Expected"},
+	"r.actual":     {"Lu", "Read"},
+	"cli.usage": {`Rodage — testeur de charge et de stabilité matériel.
+
+Usage : rodage-cli <commande> [options]
+
+Commandes :
+  info                     configuration détectée, sondes, disques
+  bench                    mesures courtes et reproductibles
+  stress                   rodage long avec verdict réussi / échoué
+  server                   serveur pour le test réseau (seconde machine)
+  report <rapport.json>    régénère le HTML / PDF d'un rapport
+  compare <a.json> <b.json> compare deux rapports (avant / après)
+  disks                    liste les disques et leur éligibilité au mode brut
+  refs list|export|import  base locale de références (sans télémétrie)
+  version                  version de Rodage
+
+« rodage-cli <commande> -h » détaille les options.
+Codes de sortie : 0 réussi, 1 échoué, 2 incomplet, 3 erreur d'utilisation.`, `Rodage — hardware load and stability tester.
+
+Usage: rodage-cli <command> [options]
+
+Commands:
+  info                     detected configuration, sensors, disks
+  bench                    short, reproducible measurements
+  stress                   long burn-in with a pass / fail verdict
+  server                   server for the network test (second machine)
+  report <report.json>     re-render a report as HTML / PDF
+  compare <a.json> <b.json> compare two reports (before / after)
+  disks                    list disks and their raw-mode eligibility
+  refs list|export|import  local reference database (no telemetry)
+  version                  Rodage version
+
+"rodage-cli <command> -h" lists the options.
+Exit codes: 0 passed, 1 failed, 2 incomplete, 3 usage error.`},
+	"cli.saved":      {"Rapport enregistré : %s", "Report saved: %s"},
+	"cli.stopping":   {"Arrêt en cours… (Ctrl+C à nouveau pour quitter immédiatement)", "Stopping… (Ctrl+C again to quit immediately)"},
+	"cli.raw.warn":   {"ATTENTION : le mode brut EFFACE TOUT le contenu de %s (%s, %s, n° de série %s).", "WARNING: raw mode ERASES ALL data on %s (%s, %s, serial %s)."},
+	"cli.raw.prompt": {"Saisissez le numéro de série pour confirmer : ", "Type the serial number to confirm: "},
+	"cli.raw.ok":     {"éligible au mode brut", "eligible for raw mode"},
+	"cli.server":     {"Serveur Rodage prêt. Sur l'autre machine : rodage-cli stress --net <adresse de cette machine>", "Rodage server ready. On the other machine: rodage-cli stress --net <this machine's address>"},
+	"cli.prevcrash":  {"Le test précédent ne s'est pas terminé (plantage ou gel probable) : ce sera signalé dans le rapport.", "The previous test did not finish (probable crash or hang): this will be noted in the report."},
+	"u.mbs":          {"Mo/s", "MB/s"},
+	"u.gbs":          {"Go/s", "GB/s"},
+	"r.notested":     {"non testé", "not tested"},
 }

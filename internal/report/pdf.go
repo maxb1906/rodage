@@ -122,10 +122,10 @@ func (r *Report) WritePDF(w io.Writer, l i18n.Lang) error {
 		}
 	}
 	if m := r.RAM; m != nil {
-		rows = append(rows, kv{i18n.T(l, "comp.ram"), fmt.Sprintf("%s · %s %d · %.1f Go/s · %s : %d", HumanBytes(m.Bytes), i18n.T(l, "r.passes"), m.Passes, m.BandwidthGBs, i18n.T(l, "r.errors"), m.TotalErrors)})
+		rows = append(rows, kv{i18n.T(l, "comp.ram"), fmt.Sprintf("%s · %s %d · %.1f %s · %s : %d", HumanBytesL(l, m.Bytes), i18n.T(l, "r.passes"), m.Passes, m.BandwidthGBs, i18n.T(l, "u.gbs"), i18n.T(l, "r.errors"), m.TotalErrors)})
 	}
 	for _, d := range r.Disks {
-		v := fmt.Sprintf("R %.0f Mo/s · W %.0f Mo/s", d.SeqReadMBs, d.SeqWriteMBs)
+		v := fmt.Sprintf("R %.0f %s · W %.0f %s", d.SeqReadMBs, i18n.T(l, "u.mbs"), d.SeqWriteMBs, i18n.T(l, "u.mbs"))
 		for _, x := range d.Random {
 			v += fmt.Sprintf(" · %s %.0f IOPS (p99 %.0f µs)", x.Name, x.IOPS, x.P99Us)
 		}

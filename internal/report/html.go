@@ -68,7 +68,7 @@ func (r *Report) ConfigRows(l i18n.Lang) []kv {
 		{i18n.T(l, "r.cpu"), s.CPUModel},
 		{i18n.T(l, "r.threads"), fmt.Sprint(s.LogicalCPUs)},
 		{i18n.T(l, "r.simd"), strings.Join(s.SIMD, ", ")},
-		{i18n.T(l, "r.ram"), HumanBytes(s.RAMTotal)},
+		{i18n.T(l, "r.ram"), HumanBytesL(l, s.RAMTotal)},
 		{i18n.T(l, "r.admin"), yesNo(l, s.Admin)},
 		{i18n.T(l, "r.mode"), i18n.T(l, "mode."+r.Mode) + " — " + i18n.T(l, "profile."+r.Profile)},
 		{i18n.T(l, "r.duration"), HumanDuration(r.Elapsed)},
@@ -122,9 +122,10 @@ func hasData(v []float64) bool {
 func confidence(level any) string { return fmt.Sprintf("conf.%v", level) }
 
 var funcs = template.FuncMap{
-	"t":     func(l i18n.Lang, k string, a ...any) string { return i18n.T(l, k, a...) },
-	"bytes": HumanBytes,
-	"dur":   HumanDuration,
+	"t":      func(l i18n.Lang, k string, a ...any) string { return i18n.T(l, k, a...) },
+	"bytes":  HumanBytes,
+	"bytesL": HumanBytesL,
+	"dur":    HumanDuration,
 	"f0": func(v float64) string {
 		if v != v || math.IsInf(v, 0) {
 			return "—"
@@ -151,7 +152,6 @@ var funcs = template.FuncMap{
 	},
 	"time": func(t time.Time) string { return t.Local().Format("2006-01-02 15:04:05") },
 	"conf": confidence,
-	"gbs":  func(v float64) string { return fmt.Sprintf("%.1f Go/s", v) },
 	"tempOrNA": func(v float64) string {
 		if v < 0 {
 			return "—"

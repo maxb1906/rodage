@@ -6,6 +6,7 @@ require (
 	github.com/go-pdf/fpdf v0.9.0
 	github.com/wailsapp/wails/v2 v2.17.1
 	golang.org/x/sys v0.48.0
+	golang.org/x/term v0.46.0
 )
 
 require (

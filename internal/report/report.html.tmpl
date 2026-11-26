@@ -70,10 +70,10 @@ footer{margin-top:40px;color:var(--mute);font-size:12px}
 {{with .R.RAM}}
 <h3>{{t $.L "comp.ram"}}</h3>
 <table class="kv">
-<tr><td>{{t $.L "r.tested"}}</td><td>{{bytes .Bytes}}</td></tr>
+<tr><td>{{t $.L "r.tested"}}</td><td>{{bytesL $.L .Bytes}}</td></tr>
 <tr><td>{{t $.L "r.locked"}}</td><td>{{if .Locked}}{{t $.L "r.yes"}}{{else}}{{t $.L "r.no"}} — {{.LockNote}}{{end}}</td></tr>
 <tr><td>{{t $.L "r.passes"}}</td><td>{{.Passes}} ({{range $i, $w := .Tests}}{{if $i}}, {{end}}{{$w}}{{end}})</td></tr>
-<tr><td>{{t $.L "r.bandwidth"}}</td><td>{{gbs .BandwidthGBs}}</td></tr>
+<tr><td>{{t $.L "r.bandwidth"}}</td><td>{{f1 .BandwidthGBs}} {{t $.L "u.gbs"}}</td></tr>
 <tr><td>{{t $.L "r.errors"}}</td><td{{if .TotalErrors}} class="bad"{{end}}>{{.TotalErrors}}</td></tr>
 <tr><td>ECC</td><td>{{if .ECC.Available}}{{.ECC.Source}} : {{.ECC.Corrected}} / {{.ECC.Uncorrected}}{{else}}—{{end}}</td></tr>
 </table>
@@ -82,21 +82,21 @@ footer{margin-top:40px;color:var(--mute);font-size:12px}
 {{range .R.Disks}}
 <h3>{{t $.L "comp.disk"}} — {{if .Device}}{{.Device.Model}} {{.Device.Serial}} ({{.Device.Bus}}){{else}}{{.Path}}{{end}}</h3>
 <table class="kv">
-<tr><td>{{t $.L "r.mode"}}</td><td>{{.Mode}} · {{.Path}} · {{bytes .FileSize}}</td></tr>
-<tr><td>{{t $.L "r.seqread"}}</td><td>{{f0 .SeqReadMBs}} Mo/s</td></tr>
-<tr><td>{{t $.L "r.seqwrite"}}</td><td>{{f0 .SeqWriteMBs}} Mo/s</td></tr>
-<tr><td>{{t $.L "r.written"}}</td><td>{{bytes .Written}} / {{bytes .WriteCap}}</td></tr>
+<tr><td>{{t $.L "r.mode"}}</td><td>{{.Mode}} · {{.Path}} · {{bytesL $.L .FileSize}}</td></tr>
+<tr><td>{{t $.L "r.seqread"}}</td><td>{{f0 .SeqReadMBs}} {{t $.L "u.mbs"}}</td></tr>
+<tr><td>{{t $.L "r.seqwrite"}}</td><td>{{f0 .SeqWriteMBs}} {{t $.L "u.mbs"}}</td></tr>
+<tr><td>{{t $.L "r.written"}}</td><td>{{bytesL $.L .Written}} / {{bytesL $.L .WriteCap}}</td></tr>
 <tr><td>{{t $.L "r.errors"}}</td><td{{if or .VerifyErrors .IOErrors}} class="bad"{{end}}>{{.VerifyErrors}} / {{.IOErrors}}</td></tr>
 <tr><td>{{t $.L "r.health"}}</td><td>{{if .HealthBefore.Available}}{{.HealthBefore.Protocol}} · {{tempOrNA .HealthBefore.TempC}} → {{tempOrNA .HealthAfter.TempC}} · media {{i64 .HealthBefore.MediaErrors}} → {{i64 .HealthAfter.MediaErrors}} · realloc {{i64 .HealthBefore.Reallocated}} → {{i64 .HealthAfter.Reallocated}} · {{i64 .HealthAfter.PowerOnHours}} h{{if ge .HealthAfter.PercentUsed 0}} · {{.HealthAfter.PercentUsed}} %{{end}}{{else}}— {{.HealthBefore.Note}}{{end}}</td></tr>
 </table>
-<table><tr><th>{{t $.L "r.test"}}</th><th class="n">IOPS</th><th class="n">Mo/s</th><th class="n">moy. µs</th><th class="n">p99 µs</th><th class="n">max µs</th></tr>
+<table><tr><th>{{t $.L "r.test"}}</th><th class="n">IOPS</th><th class="n">{{t $.L "u.mbs"}}</th><th class="n">moy. µs</th><th class="n">p99 µs</th><th class="n">max µs</th></tr>
 {{range .Random}}<tr><td>{{.Name}}</td><td class="n">{{f0 .IOPS}}</td><td class="n">{{f1 .MBs}}</td><td class="n">{{f0 .AvgUs}}</td><td class="n">{{f0 .P99Us}}</td><td class="n">{{f0 .MaxUs}}</td></tr>{{end}}
 </table>
 {{end}}
 {{with .R.Net}}
 <h3>{{t $.L "comp.net"}} — {{.Server}}{{if .ServerHost}} ({{.ServerHost}}){{end}}</h3>
 <table><tr><th>{{t $.L "r.test"}}</th><th class="n">Mbit/s</th><th class="n">{{t $.L "r.result"}}</th></tr>
-{{range .TCP}}<tr><td>TCP {{.Dir}} ×{{.Streams}}</td><td class="n">{{f0 .Mbps}}</td><td class="n">{{bytes .Bytes}}</td></tr>{{end}}
+{{range .TCP}}<tr><td>TCP {{.Dir}} ×{{.Streams}}</td><td class="n">{{f0 .Mbps}}</td><td class="n">{{bytesL $.L .Bytes}}</td></tr>{{end}}
 {{range .UDP}}<tr><td>UDP {{.Dir}} ({{f0 .TargetMbps}} Mbit/s)</td><td class="n">{{f0 .Mbps}}</td><td class="n">{{f2 .LossPct}} % · {{f2 .JitterMs}} ms</td></tr>{{end}}
 </table>
 <p class="note">RTT {{f1 .RTTms}} ms · {{.Link.Interface}} {{f0 .Link.SpeedStartMbps}} Mbit/s · err {{.Link.RxErrors}}/{{.Link.TxErrors}}</p>

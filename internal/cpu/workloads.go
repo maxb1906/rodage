@@ -310,7 +310,7 @@ func NewHash() (Workload, error) {
 }
 
 func (w *hashWork) Name() string { return "sha256" }
-func (w *hashWork) Unit() string { return "Go/s" }
+func (w *hashWork) Unit() string { return "GB/s" }
 func (w *hashWork) Ops() float64 { return hashLen }
 func (w *hashWork) New() Runner  { return &hashRun{w: w} }
 

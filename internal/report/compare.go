@@ -89,7 +89,7 @@ func metrics(a, b *Report) []metric {
 			}
 			return r.CPU.Throttle.SustainedMHz, true
 		}},
-		metric{"ram", "bandwidth", "Go/s", true, func(r *Report) (float64, bool) {
+		metric{"ram", "bandwidth", "GB/s", true, func(r *Report) (float64, bool) {
 			if r.RAM == nil {
 				return 0, false
 			}
@@ -111,8 +111,8 @@ func metrics(a, b *Report) []metric {
 		}
 	}
 	ms = append(ms,
-		metric{"disk", "seq read", "Mo/s", true, diskGet(func(i int, r *Report) (float64, bool) { return r.Disks[i].SeqReadMBs, r.Disks[i].SeqReadMBs > 0 })},
-		metric{"disk", "seq write", "Mo/s", true, diskGet(func(i int, r *Report) (float64, bool) { return r.Disks[i].SeqWriteMBs, r.Disks[i].SeqWriteMBs > 0 })},
+		metric{"disk", "seq read", "MB/s", true, diskGet(func(i int, r *Report) (float64, bool) { return r.Disks[i].SeqReadMBs, r.Disks[i].SeqReadMBs > 0 })},
+		metric{"disk", "seq write", "MB/s", true, diskGet(func(i int, r *Report) (float64, bool) { return r.Disks[i].SeqWriteMBs, r.Disks[i].SeqWriteMBs > 0 })},
 	)
 	for _, n := range []string{"read-4k-qd1", "write-4k-qd1", "read-4k-qd32", "write-4k-qd32"} {
 		n := n
